@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 //
 // Author: Stephen Oswin
 //
@@ -165,7 +166,7 @@ class TrieNode
 			return NULL;
 		}
 
-        void dump(size_t& depth, std::string* pstr_workspace) const
+        void dump(std::ostream& os,size_t& depth, std::string* pstr_workspace) const
         {
             ++depth;
             std::string spaces( depth*2, ' ');
@@ -174,43 +175,43 @@ class TrieNode
                 if (1==depth)
                 {
                     // the very first switch does not need to move on the pointer
-                    std::cout << spaces << "switch(*p){" << std::endl;
+                    os << spaces << "switch(*p){" << std::endl;
                 }
                 else
                 {
-                    std::cout << spaces << "switch(*(++p)){" << std::endl;
+                    os << spaces << "switch(*(++p)){" << std::endl;
                 }
                 for( size_t i =  0; i < _childNodes->size(); ++i)
                 {
-                    std::cout << spaces << "case '" << _childNodes->at(i)->GetChar() << "':" << std::endl;
+                    os << spaces << "case '" << _childNodes->at(i)->GetChar() << "':" << std::endl;
                     pstr_workspace->append(1,(char)_childNodes->at(i)->GetChar());
                     if (_childNodes->at(i)->IsEndOfWord())
                     {
                         // this is the end of a word
-                        std::cout << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
-                        std::cout << spaces << "pRet=p;" << std::endl;
-                        std::cout << spaces << "cf(pStart, pbuff, \"" << *pstr_workspace << "\", p);" << std::endl;
+                        os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
+                        os << spaces << "pRet=p;" << std::endl;
+                        os << spaces << "cf(pStart, pbuff, \"" << *pstr_workspace << "\", p);" << std::endl;
                     }
                     if (_childNodes->at(i)->IsEndNode())
                     {
-                        std::cout << spaces << "// end. No more words." << std::endl;
-                        std::cout << spaces << "return p;" << std::endl;
+                        os << spaces << "// end. No more words." << std::endl;
+                        os << spaces << "return p;" << std::endl;
                     }
                     else
                     {
-                        _childNodes->at(i)->dump(depth,pstr_workspace);
+                        _childNodes->at(i)->dump(os,depth,pstr_workspace);
                     }
                     pstr_workspace->pop_back();
-                    std::cout << spaces << "break;" << std::endl;
+                    os << spaces << "break;" << std::endl;
                 }
-                std::cout << spaces << "default:" << std::endl;
-                std::cout << spaces << "if (pRet) {" << std::endl;
-                std::cout << spaces << "// pRet is pointing past the word it found." << std::endl;
-                std::cout << spaces << "return pRet;" << std::endl;
-                std::cout << spaces << "}" << std::endl;
-                std::cout << spaces << "// not found!" << std::endl;
-                std::cout << spaces << "break;" << std::endl;
-                std::cout << spaces << "}" << std::endl;
+                os << spaces << "default:" << std::endl;
+                os << spaces << "if (pRet) {" << std::endl;
+                os << spaces << "// pRet is pointing past the word it found." << std::endl;
+                os << spaces << "return pRet;" << std::endl;
+                os << spaces << "}" << std::endl;
+                os << spaces << "// not found!" << std::endl;
+                os << spaces << "break;" << std::endl;
+                os << spaces << "}" << std::endl;
             }
             --depth;
         }
@@ -253,7 +254,7 @@ template<typename CharType>
 class Trie
 {
 	public:
-		Trie(){ _rootNode = new TrieNode<CharType>(NULL); _maxWordLength = 0;}
+		Trie(){ _rootNode = new TrieNode<CharType>((CharType)0); _maxWordLength = 0;}
 		~Trie(){ delete _rootNode; }
 
 		// Search function. Requires pointers to the start / end of the input buffer to search.
@@ -366,29 +367,29 @@ class Trie
 			return _rootNode->ValidateState();
 		}
 
-        void dump() const
+        void dump(std::ostream& os) const
         {
             std::string workSpace;
-            std::cout << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf )" << std::endl;
-            std::cout << "{" << std::endl;
-            std::cout << "  const char * p = pbuff;" << std::endl;
-            std::cout << "  const char * pRet = NULL;" << std::endl;
-            std::cout << "  const size_t maxWordLen = " << _maxWordLength << ";" << std::endl;
-            std::cout << "  while(*p)" << std::endl;
-            std::cout << "  {" << std::endl;
+            os << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf )" << std::endl;
+            os << "{" << std::endl;
+            os << "  const char * p = pbuff;" << std::endl;
+            os << "  const char * pRet = NULL;" << std::endl;
+            os << "  const size_t maxWordLen = " << _maxWordLength << ";" << std::endl;
+            os << "  while(*p)" << std::endl;
+            os << "  {" << std::endl;
             size_t depth = 0;
-            _rootNode->dump(depth,&workSpace);
+            _rootNode->dump(os,depth,&workSpace);
             // This can go here or in the defaults: of the switch(). If its here then the switch() is smaller (usefull if there is a large set of words being used)
-                // std::cout << "  if (pRet)" << std::endl;
-                // std::cout << "  {" << std::endl;
-                // std::cout << "    // pRet is pointing past the word it found." << std::endl;
-                // std::cout << "    return pRet;" << std::endl;
-                // std::cout << "  }" << std::endl;
-                std::cout << "  ++pbuff;" << std::endl;
-            std::cout << "  p=pbuff;" << std::endl;
-            std::cout << "  }" << std::endl;
-            std::cout << "  return p;" << std::endl;
-            std::cout << "}" << std::endl;
+                // os << "  if (pRet)" << std::endl;
+                // os << "  {" << std::endl;
+                // os << "    // pRet is pointing past the word it found." << std::endl;
+                // os << "    return pRet;" << std::endl;
+                // os << "  }" << std::endl;
+                os << "  ++pbuff;" << std::endl;
+            os << "  p=pbuff;" << std::endl;
+            os << "  }" << std::endl;
+            os << "  return p;" << std::endl;
+            os << "}" << std::endl;
         } 
 	protected:
 		TrieNode<CharType>* _rootNode;
