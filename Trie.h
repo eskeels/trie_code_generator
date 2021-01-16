@@ -1,3 +1,6 @@
+// This source was written by Stephen Oswin, and is placed in the
+// public domain. The author hereby disclaims copyright to this source
+// code.
 
 #ifndef __TRIE_H
 #define __TRIE_H
@@ -5,9 +8,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
-//
-// Author: Stephen Oswin
-//
+
 namespace TDS
 {
 

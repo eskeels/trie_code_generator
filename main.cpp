@@ -1,5 +1,7 @@
-// trie.cpp : Defines the entry point for the console application.
-//
+// This source was written by Stephen Oswin, and is placed in the
+// public domain. The author hereby disclaims copyright to this source
+// code.
+
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -31,7 +33,7 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
 {
     if (argc<=1)
     {
-        std::cerr << "Invalid command line options. Need directory or files to process." << std::endl;
+        std::cerr << "Invalid command line options. Need file to process." << std::endl;
         return EXIT_FAILURE;
     }
     else
