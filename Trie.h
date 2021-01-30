@@ -191,7 +191,7 @@ class TrieNode
                         // this is the end of a word
                         os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
                         os << spaces << "pRet=p;" << std::endl;
-                        os << spaces << "cf(pStart, pbuff, \"" << *pstr_workspace << "\", p);" << std::endl;
+                        os << spaces << "cf(pStart, pbuff, \"" << *pstr_workspace << "\", p, data);" << std::endl;
                     }
                     if (_childNodes->at(i)->IsEndNode())
                     {
@@ -371,7 +371,7 @@ class Trie
         void dump(std::ostream& os) const
         {
             std::string workSpace;
-            os << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf )" << std::endl;
+            os << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf, void * data)" << std::endl;
             os << "{" << std::endl;
             os << "  const char * p = pbuff;" << std::endl;
             os << "  const char * pRet = NULL;" << std::endl;

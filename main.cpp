@@ -10,6 +10,7 @@
 #include <random>
 #include <set>
 #include <time.h>
+#include <stdlib.h>
 
 #include "Trie.h"
 
@@ -81,12 +82,17 @@ int main(int argc, char* argv[])
 
     std::ofstream cpp("search.cpp");
     cpp << ss.str() << std::endl;
+    cpp.close();
 
     std::ofstream hpp("search.h");
     hpp << "#pragma once" << std::endl;
-    hpp << "typedef int (CallbackFunction)(const char * pStart, const char * pbuff, const char * resultString, const char * position);" << std::endl;
-    hpp << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf );" << std::endl;
-
+    hpp << "typedef int (CallbackFunction)(const char * pStart, const char * pbuff, const char * resultString, const char * position, void * data);" << std::endl;
+    hpp << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf, void * data = NULL);" << std::endl;
+    hpp.close();
+    
+    system("g++ file_search.cpp -o file_search");
+    
 	return 0;
 }
+
 
