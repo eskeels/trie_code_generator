@@ -48,6 +48,11 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
 int ReadFile(const std::string& filename, 	std::map<const void *,std::string> dictionary, Trie<char>& t)
 {
     std::fstream inputFile(filename.c_str());
+    if (inputFile.fail())
+    {
+        std::cerr << "Failed to open " << filename << std::endl;
+        return EXIT_FAILURE;
+    }
 
     for( std::string line; std::getline(inputFile,line); )
     {

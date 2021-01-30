@@ -191,8 +191,11 @@ class TrieNode
                         // this is the end of a word
                         os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
                         os << spaces << "pRet=p;" << std::endl;
+                        // this puts the call back in
                         os << spaces << "cf(pStart, pbuff, \"" << *pstr_workspace << "\", p, data);" << std::endl;
-                    }
+                        // use this line instead to just print term found
+                        // os << spaces << "printf(\"%s\\n\",\"" << *pstr_workspace << "\");" << std::endl;
+                      }
                     if (_childNodes->at(i)->IsEndNode())
                     {
                         os << spaces << "// end. No more words." << std::endl;
