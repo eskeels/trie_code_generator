@@ -10,7 +10,7 @@
 
 int myCallback(const char * pStart, const char * pbuff, const char * resultString, const char * position, void * data)
 {
-    std::cout << "Found word [" << resultString << "] line :" << *(size_t *)data << std::endl;
+    std::cout << "Found word [" << resultString << "] line :" << *(size_t *)data;
     if (pStart && position)
     {
         std::cout << " column :" << std::distance(pStart, position) << std::endl;
@@ -47,7 +47,7 @@ int ReadFile(const std::string& filename)
         {
             const char * newp = search(line.c_str(), p, &myCallback, &lineCount);
             // for single character matches. I should sort out the search method really...
-            p = (newp == p ? newp+1 : p);
+            p = (newp == p ? newp+1 : newp);
         }
     }
 
