@@ -23,7 +23,7 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
 {
     if (argc<=1)
     {
-        std::cerr << "Invalid command line options. Need file to process." << std::endl;
+        std::cerr << "Invalid command line options. Need file to search." << std::endl;
         return EXIT_FAILURE;
     }
     else
@@ -37,6 +37,11 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
 int ReadFile(const std::string& filename)
 {
     std::fstream inputFile(filename.c_str());
+    if (inputFile.fail())
+    {
+        std::cerr << "Failed to open " << filename << std::endl;
+        return EXIT_FAILURE;
+    }
 
     size_t lineCount = 0;
     std::string line;
