@@ -1,7 +1,6 @@
 # C++ Trie that generates code<br>
 If you need to search for a fixed amount of hard coded strings then this might be a good solution. Whilst the Trie is fast you have to contend with the overhead of initialising the Trie data structure and the memory usage. This version of the Trie has a dump() method that will generate a search() function capable of performing a parallel search of all the words in the Trie. Some simple tests have shown this to be considerably faster than using the Trie directly. The search() function will find partial matches.
-<br><br>
-More documentation here: https://soswin-techbits.blogspot.com/2013/11/generating-code-from-trie.html<br>
+<br>
 To build the sample app you just need cmake and g++. The steps are simply:<br>
 cmake .<br>
 make<br>
