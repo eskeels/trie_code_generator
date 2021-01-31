@@ -8,7 +8,7 @@ make<br>
 <br>
 This creates an executable called trie_code_gen. It only has one parameter which is the filename of a dictionary file, which is just a new line separated list of key words (ASCII). Example:<br>
 ```
-./trie_code_gen example_dictionary.txt<br>
+./trie_code_gen example_dictionary.txt
 ```
 This will create 2 files, search.cpp and search.h and build a new executable called file search.<br>
 There is only one parameter, the name of the file to search:<br>
