@@ -31,7 +31,17 @@ template<typename CharType>
 class TrieNode
 {
 	public:
-		TrieNode (CharType c) : _c(c), _endOfWord(false), _childNodes(NULL) {}
+		TrieNode (CharType c, const std::string& dictionaryName, int16_t score, bool caseSensitive, bool distinct) :
+			_c(c), 
+			_endOfWord(false), 
+			_childNodes(NULL),
+			_dictionaryName(dictionaryName),
+			_score(score),
+			_caseSensitive(caseSensitive),
+			_distinct(distinct)
+		{
+		}
+
 		~TrieNode()
 		{
 			if (_childNodes)
@@ -106,7 +116,11 @@ class TrieNode
 		}
 		// AddNode adds a new node. This function
 		// must keep the node list in alphabetical order.
-		TrieNode* AddNode (CharType c) 
+		TrieNode* AddNode (CharType c,
+						   const std::string& dictionaryName,
+						   int32_t score,
+						   bool caseSensitive,
+						   bool distinct)
 		{
 			if (NULL==_childNodes)
 			{
@@ -118,7 +132,7 @@ class TrieNode
 			
 			if (i == _childNodes->end())
 			{
-				newNode = new TrieNode(c);
+				newNode = new TrieNode(c, dictionaryName, score, caseSensitive, distinct);
 				_childNodes->push_back(newNode);
 				return newNode;
 			}
@@ -127,7 +141,7 @@ class TrieNode
 				// duplicate node? Hopefully this wont happen...
 				return NULL;
 			}
-			newNode = new TrieNode(c);
+			newNode = new TrieNode(c, dictionaryName, score, caseSensitive, distinct);
 			// now insert just before i
 			_childNodes->insert (i, newNode);
 			return newNode;
@@ -184,15 +198,29 @@ class TrieNode
                 }
                 for( size_t i =  0; i < _childNodes->size(); ++i)
                 {
-                    os << spaces << "case '" << _childNodes->at(i)->GetChar() << "':" << std::endl;
-                    pstr_workspace->append(1,(char)_childNodes->at(i)->GetChar());
-                    if (_childNodes->at(i)->IsEndOfWord())
+					auto childNode = _childNodes->at(i);
+
+					if (childNode->_caseSensitive) {
+						os << spaces << "case '" << childNode->GetChar() << "':" << std::endl;
+					}
+					else {
+						os << spaces << "case '" << (CharT)tolower(childNode->GetChar()) << "':" << std::endl;
+						os << spaces << "case '" << (CharT)toupper(childNode->GetChar()) << "':" << std::endl;
+					}
+
+                    pstr_workspace->append(1,(CharType)childNode->GetChar());
+                    if (childNode->IsEndOfWord())
                     {
                         // this is the end of a word
                         os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
                         os << spaces << "pRet=p;" << std::endl;
                         // this puts the call back in
-                        os << spaces << "cf(pStart, pbuff, \"" << *pstr_workspace << "\", p, data);" << std::endl;
+                        os << spaces << "match(pStart, pbuff, \"" 
+											<< *pstr_workspace << "\", p, \"" 
+											<< childNode->_dictionaryName << "\", " 
+											<< childNode->_score << ", " 
+											<< (childNode->_distinct ? "true" : "false") << ", data); " << std::endl;
+
                         // use this line instead to just print term found
                         // os << spaces << "printf(\"%s\\n\",\"" << *pstr_workspace << "\");" << std::endl;
                       }
@@ -228,6 +256,10 @@ class TrieNode
 		CharType _c;
 		std::vector<TrieNode*>* _childNodes;
 		bool _endOfWord;
+		const std::string _dictionaryName;
+		int16_t _score;
+		bool _caseSensitive;
+		bool _distinct;
 };
 
 template<typename CharType>
@@ -258,7 +290,7 @@ template<typename CharType>
 class Trie
 {
 	public:
-		Trie(){ _rootNode = new TrieNode<CharType>((CharType)0); _maxWordLength = 0;}
+		Trie(){ _rootNode = new TrieNode<CharType>((CharType)0, "", 0, false, false); _maxWordLength = 0; }
 		~Trie(){ delete _rootNode; }
 
 		// Search function. Requires pointers to the start / end of the input buffer to search.
@@ -312,16 +344,25 @@ class Trie
 		
 		// Simply adds a word to the Trie. The return value should be stored as it will
 		// be required to identify the matching term.
-		const void* AddWord( const std::basic_string<CharType>& s )
+		const void* AddWord(const std::basic_string<CharType>& s, 
+							const std::string& dictionaryName, 
+						    int32_t score,
+							bool caseSensitive,
+							bool distinct)
 		{
 			if (!s.empty())
 			{
-				return AddWord(s.c_str(), &s[s.size()-1]);
+				return AddWord(s.c_str(), &s[s.size()-1], dictionaryName, score, caseSensitive, distinct);
 			}
 			return NULL;
 		}
 
-		const void* AddWord( const CharType* p, const CharType* end )
+		const void* AddWord(const CharType* p,
+							const CharType* end,
+							const std::string& dictionaryName,
+							int32_t score,
+							bool caseSensitive,
+							bool distinct)
 		{
 			TrieNode<CharType> * pTN = _rootNode;
             size_t wordLen = 0;
@@ -332,7 +373,7 @@ class Trie
 				if (NULL == pNext)
 				{
 					// not found so add
-					pTN = pTN->AddNode(*p);
+					pTN = pTN->AddNode(*p, dictionaryName, score, caseSensitive, distinct);
 				}
 				else
 				{
@@ -374,10 +415,10 @@ class Trie
         void dump(std::ostream& os) const
         {
             std::string workSpace;
-            os << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf, void * data)" << std::endl;
+			os << "const CharT* search(const CharT * pStart, const CharT * pbuff, CallbackFunction match, void* data) " << std::endl;
             os << "{" << std::endl;
-            os << "  const char * p = pbuff;" << std::endl;
-            os << "  const char * pRet = NULL;" << std::endl;
+            os << "  const CharT * p = pbuff;" << std::endl;
+            os << "  const CharT * pRet = NULL;" << std::endl;
             os << "  const size_t maxWordLen = " << _maxWordLength << ";" << std::endl;
             os << "  while(*p)" << std::endl;
             os << "  {" << std::endl;

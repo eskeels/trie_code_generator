@@ -25,9 +25,14 @@ int myCallback(const char * pStart, const char * pbuff, const char * resultStrin
 using namespace TDS;
 
 template <typename CharType>
-void AddWord( const std::basic_string<CharType>& s, Trie<CharType>& t, std::map<const void *,std::basic_string<CharType> >& d)
+void AddWord(const std::basic_string<CharType>& s, 
+             Trie<CharType>& t,
+             const std::string& dictionaryName,
+             int16_t score,
+             bool caseSensitive,
+             bool distinct)
 {
-	d[t.AddWord(s)]=s;
+	t.AddWord(s, dictionaryName, score, caseSensitive, distinct);
 }
 
 int ParseCmdLine(int argc, char* argv[], std::string& fname)
@@ -45,7 +50,7 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
     return 0;
 }
 
-int ReadFile(const std::string& filename, 	std::map<const void *,std::string> dictionary, Trie<char>& t)
+int ReadFile(const std::string& filename, Trie<char>& t)
 {
     std::fstream inputFile(filename.c_str());
     if (inputFile.fail())
@@ -54,13 +59,22 @@ int ReadFile(const std::string& filename, 	std::map<const void *,std::string> di
         return EXIT_FAILURE;
     }
 
+    int16_t score = -1;
+    std::string dictionaryName = "dictionary1";
+    bool caseSensitive = true;
+    bool distinct = false;
+
     for( std::string line; std::getline(inputFile,line); )
     {
-    	AddWord<char>(line, t, dictionary);
+        std::cout << line << " " << score << std::endl;
+    	AddWord<char>(line, t, dictionaryName, score, caseSensitive, distinct);
+        ++score;
     }
 
     return 0;
 }
+
+typedef char CharT;
 
 int main(int argc, char* argv[])
 {
@@ -72,9 +86,9 @@ int main(int argc, char* argv[])
     }
 
 	Trie<char> t;
-	std::map<const void *,std::string> dictionary;
+	//std::map<const void *,std::string> dictionary;
 
-    if (0 != ReadFile(fname, dictionary, t))
+    if (0 != ReadFile(fname, t))
     {
         return EXIT_FAILURE;
     }
@@ -91,11 +105,12 @@ int main(int argc, char* argv[])
 
     std::ofstream hpp("search.h");
     hpp << "#pragma once" << std::endl;
-    hpp << "typedef int (CallbackFunction)(const char * pStart, const char * pbuff, const char * resultString, const char * position, void * data);" << std::endl;
-    hpp << "const char * search(const char * pStart,  const char * pbuff, CallbackFunction cf, void * data = NULL);" << std::endl;
+    hpp << "typedef char CharT;" << std::endl;
+    hpp << "typedef int (CallbackFunction)(const CharT * pStart, const CharT * pbuff, const CharT * resultString, const CharT * position, const char * dictionaryName, int16_t score, bool distinct, void * data);" << std::endl;
+    hpp << "const CharT * search(const CharT * pStart, const CharT * pbuff, CallbackFunction match, void * data = NULL);" << std::endl;
     hpp.close();
     
-    system("g++ file_search.cpp -o file_search");
+    system("g++ -O3 file_search.cpp -o file_search");
     
 	return 0;
 }
