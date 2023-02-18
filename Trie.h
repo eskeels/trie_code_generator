@@ -204,8 +204,8 @@ class TrieNode
 						os << spaces << "case '" << childNode->GetChar() << "':" << std::endl;
 					}
 					else {
-						os << spaces << "case '" << (CharT)tolower(childNode->GetChar()) << "':" << std::endl;
-						os << spaces << "case '" << (CharT)toupper(childNode->GetChar()) << "':" << std::endl;
+						os << spaces << "case '" << (CharType)tolower(childNode->GetChar()) << "':" << std::endl;
+						os << spaces << "case '" << (CharType)toupper(childNode->GetChar()) << "':" << std::endl;
 					}
 
                     pstr_workspace->append(1,(CharType)childNode->GetChar());
