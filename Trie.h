@@ -215,8 +215,8 @@ class TrieNode
                         os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
                         os << spaces << "pRet=p;" << std::endl;
                         // this puts the call back in
-                        os << spaces << "match(pStart, pbuff, \"" 
-											<< *pstr_workspace << "\", p, \"" 
+                        os << spaces << "match(pStart, \"" 
+											<< *pstr_workspace << "\", matchStart, p, \"" 
 											<< childNode->_dictionaryName << "\", " 
 											<< childNode->_score << ", " 
 											<< (childNode->_distinct ? "true" : "false") << ", data); " << std::endl;
@@ -415,13 +415,14 @@ class Trie
         void dump(std::ostream& os) const
         {
             std::string workSpace;
-			os << "const CharT* search(const CharT * pStart, const CharT * pbuff, CallbackFunction match, void* data) " << std::endl;
+			os << "const CharT* search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void* data) " << std::endl;
             os << "{" << std::endl;
             os << "  const CharT * p = pbuff;" << std::endl;
             os << "  const CharT * pRet = NULL;" << std::endl;
             os << "  const size_t maxWordLen = " << _maxWordLength << ";" << std::endl;
             os << "  while(*p)" << std::endl;
             os << "  {" << std::endl;
+			os << "  const CharT * matchStart = p;" << std::endl;
             size_t depth = 0;
             _rootNode->dump(os,depth,&workSpace);
             // This can go here or in the defaults: of the switch(). If its here then the switch() is smaller (usefull if there is a large set of words being used)

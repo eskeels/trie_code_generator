@@ -14,11 +14,11 @@
 
 #include "Trie.h"
 
-int myCallback(const char * pStart, const char * pbuff, const char * resultString, const char * position)
+int myCallback(const char * pStart, const char * pbuff, const char * resultString, const char * matchEnd)
 {
      std::cout << "Found word :" << resultString << std::endl;
-      if (pStart && position)
-           std::cout << "At position :" << std::distance(pStart, position) << std::endl;
+      if (pStart && matchEnd)
+           std::cout << "At position :" << std::distance(pStart, matchEnd) << std::endl;
        return 0;
 }
 
@@ -61,7 +61,7 @@ int ReadFile(const std::string& filename, Trie<char>& t)
 
     int16_t score = -1;
     std::string dictionaryName = "dictionary1";
-    bool caseSensitive = true;
+    bool caseSensitive = false;
     bool distinct = false;
 
     for( std::string line; std::getline(inputFile,line); )
@@ -86,7 +86,6 @@ int main(int argc, char* argv[])
     }
 
 	Trie<char> t;
-	//std::map<const void *,std::string> dictionary;
 
     if (0 != ReadFile(fname, t))
     {
@@ -106,8 +105,8 @@ int main(int argc, char* argv[])
     std::ofstream hpp("search.h");
     hpp << "#pragma once" << std::endl;
     hpp << "typedef char CharT;" << std::endl;
-    hpp << "typedef int (CallbackFunction)(const CharT * pStart, const CharT * pbuff, const CharT * resultString, const CharT * position, const char * dictionaryName, int16_t score, bool distinct, void * data);" << std::endl;
-    hpp << "const CharT * search(const CharT * pStart, const CharT * pbuff, CallbackFunction match, void * data = NULL);" << std::endl;
+    hpp << "typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, void * data);" << std::endl;
+    hpp << "const CharT * search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void * data = NULL);" << std::endl;
     hpp.close();
     
     system("g++ -O3 file_search.cpp -o file_search");

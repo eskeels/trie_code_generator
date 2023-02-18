@@ -10,24 +10,23 @@
 #include "search.cpp"
 
 // pStart = start of buffer being scanned
-// pbuff = current position within the buffer being scanned
 // resultString = matched text
-// position = end of match (past last character)
+// position = end of match (last character)
 // dictionaryName = name of dictionary this term belongs to
 // score = score for term
 int myCallback(const CharT* pStart,
-               const CharT* pbuff, 
                const CharT* resultString, 
-               const CharT * position,
-               const char * dictionaryName,
+               const CharT* matchStart,
+               const CharT* matchEnd,
+               const char* dictionaryName,
                int16_t score,
                bool distinct,
                void * data)
 {
     std::cout << "Found word [" << resultString << "] line :" << *(size_t *)data;
-    if (pStart && position)
+    if (pStart && matchEnd)
     {
-        std::cout << " column :" << std::distance(pStart, position) << std::endl;
+        std::cout << " column :" << std::distance(pStart, matchStart) << std::endl;
     }
 
     return 0;
@@ -64,8 +63,9 @@ int ReadFile(const std::string& filename)
         const char * p = line.c_str();
         while( p && (*p != '\0') )
         {
-            p = search(line.c_str(), p, &myCallback, &lineCount);
-            //++p;
+            const char* newp = search(line.c_str(), p, &myCallback, &lineCount);
+            // for single character matches. I should sort out the search method really...
+            p = (newp == p ? newp + 1 : newp);
         }
     }
 
