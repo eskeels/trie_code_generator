@@ -198,16 +198,10 @@ class TrieNode
                 }
                 for( size_t i =  0; i < _childNodes->size(); ++i)
                 {
-					auto childNode = _childNodes->at(i);
+					TrieNode* childNode = _childNodes->at(i);
 
-					if (childNode->_caseSensitive) {
-						os << spaces << "case '" << childNode->GetChar() << "':" << std::endl;
-					}
-					else {
-						os << spaces << "case '" << (CharType)tolower(childNode->GetChar()) << "':" << std::endl;
-						os << spaces << "case '" << (CharType)toupper(childNode->GetChar()) << "':" << std::endl;
-					}
-
+					os << spaces << "case '" << childNode->GetChar() << "':" << std::endl;
+	
                     pstr_workspace->append(1,(CharType)childNode->GetChar());
                     if (childNode->IsEndOfWord())
                     {
@@ -219,7 +213,8 @@ class TrieNode
 											<< *pstr_workspace << "\", matchStart, p, \"" 
 											<< childNode->_dictionaryName << "\", " 
 											<< childNode->_score << ", " 
-											<< (childNode->_distinct ? "true" : "false") << ", data); " << std::endl;
+											<< (childNode->_distinct ? "true" : "false") << ", "
+											<< (childNode->_caseSensitive ? "true" : "false") <<", data); " << std::endl;
 
                         // use this line instead to just print term found
                         // os << spaces << "printf(\"%s\\n\",\"" << *pstr_workspace << "\");" << std::endl;
@@ -366,14 +361,16 @@ class Trie
 		{
 			TrieNode<CharType> * pTN = _rootNode;
             size_t wordLen = 0;
-			while (pTN && p <= end)
-			{
-				TrieNode<CharType>* pNext = pTN->FindNode(*p);
+			while (pTN && p <= end)	{
+				TrieNode<CharType>* pNext = nullptr;
+				CharType c = *p;
 
-				if (NULL == pNext)
+				pNext = pTN->FindNode(c);
+
+				if (nullptr == pNext)
 				{
 					// not found so add
-					pTN = pTN->AddNode(*p, dictionaryName, score, caseSensitive, distinct);
+					pTN = pTN->AddNode(c, dictionaryName, score, caseSensitive, distinct);
 				}
 				else
 				{

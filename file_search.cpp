@@ -21,6 +21,7 @@ int myCallback(const CharT* pStart,
                const char* dictionaryName,
                int16_t score,
                bool distinct,
+               bool caseSensitive,
                void * data)
 {
     std::cout << "Found word [" << resultString << "] line :" << *(size_t *)data;

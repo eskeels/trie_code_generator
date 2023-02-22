@@ -8,30 +8,18 @@ const CharT* search(const CharT * pStart, const CharT * pbuff, MatchFunction mat
   const CharT * matchStart = p;
   switch(*p){
   case 'c':
-  case 'C':
     switch(*(++p)){
     case 'a':
-    case 'A':
       switch(*(++p)){
       case 't':
-      case 'T':
       // found a word:cat Store pointer to last character of where it was found.
       pRet=p;
-      match(pStart, "cat", matchStart, p, "dictionary1", -1, false, data); 
+      match(pStart, "cat", matchStart, p, "dictionary1", -1, false, false, data); 
         switch(*(++p)){
         case 's':
-        case 'S':
         // found a word:cats Store pointer to last character of where it was found.
         pRet=p;
-        match(pStart, "cats", matchStart, p, "dictionary1", 0, false, data); 
-        // end. No more words.
-        return p;
-        break;
-        case 'z':
-        case 'Z':
-        // found a word:catz Store pointer to last character of where it was found.
-        pRet=p;
-        match(pStart, "catz", matchStart, p, "dictionary1", 1, false, data); 
+        match(pStart, "cats", matchStart, p, "dictionary1", 0, false, false, data); 
         // end. No more words.
         return p;
         break;

@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     std::ofstream hpp("search.h");
     hpp << "#pragma once" << std::endl;
     hpp << "typedef char CharT;" << std::endl;
-    hpp << "typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, void * data);" << std::endl;
+    hpp << "typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, bool caseSensitive, void * data);" << std::endl;
     hpp << "const CharT * search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void * data = NULL);" << std::endl;
     hpp.close();
     

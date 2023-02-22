@@ -1,5 +1,2 @@
-the
 cat
-sat
-on
-mat
+cats
