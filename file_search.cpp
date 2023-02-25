@@ -10,8 +10,9 @@
 #include "search.cpp"
 
 // pStart = start of buffer being scanned
-// resultString = matched text
-// position = end of match (last character)
+// resultString = matched text from the dictionary
+// matchStart = start of match
+// matchEnd = end of match (last character)
 // dictionaryName = name of dictionary this term belongs to
 // score = score for term
 int myCallback(const CharT* pStart,
@@ -22,11 +23,17 @@ int myCallback(const CharT* pStart,
                int16_t score,
                bool distinct,
                bool caseSensitive,
+               bool wholeWord,
                void * data)
 {
+    if (caseSensitive) {
+        if (0 != memcmp(matchStart, resultString, 1+(matchEnd - matchStart))) {
+            return 0;
+        }
+    }
+
     std::cout << "Found word [" << resultString << "] line :" << *(size_t *)data;
-    if (pStart && matchEnd)
-    {
+    if (pStart && matchEnd) {
         std::cout << " column :" << std::distance(pStart, matchStart) << std::endl;
     }
 

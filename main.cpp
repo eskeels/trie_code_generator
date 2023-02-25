@@ -30,9 +30,10 @@ void AddWord(const std::basic_string<CharType>& s,
              const std::string& dictionaryName,
              int16_t score,
              bool caseSensitive,
-             bool distinct)
+             bool distinct,
+             bool wholeWord)
 {
-	t.AddWord(s, dictionaryName, score, caseSensitive, distinct);
+	t.AddWord(s, dictionaryName, score, caseSensitive, distinct, wholeWord);
 }
 
 int ParseCmdLine(int argc, char* argv[], std::string& fname)
@@ -61,13 +62,14 @@ int ReadFile(const std::string& filename, Trie<char>& t)
 
     int16_t score = -1;
     std::string dictionaryName = "dictionary1";
-    bool caseSensitive = false;
+    bool caseSensitive = true;
     bool distinct = false;
+    bool wholeWord = true;
 
     for( std::string line; std::getline(inputFile,line); )
     {
         std::cout << line << " " << score << std::endl;
-    	AddWord<char>(line, t, dictionaryName, score, caseSensitive, distinct);
+    	AddWord<char>(line, t, dictionaryName, score, caseSensitive, distinct, wholeWord);
         ++score;
     }
 
@@ -104,8 +106,9 @@ int main(int argc, char* argv[])
 
     std::ofstream hpp("search.h");
     hpp << "#pragma once" << std::endl;
+    hpp << "#include <cctype>" << std::endl;
     hpp << "typedef char CharT;" << std::endl;
-    hpp << "typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, bool caseSensitive, void * data);" << std::endl;
+    hpp << "typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, bool caseSensitive, bool wholeWord, void * data);" << std::endl;
     hpp << "const CharT * search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void * data = NULL);" << std::endl;
     hpp.close();
     

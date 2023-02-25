@@ -16,12 +16,11 @@ namespace TDS
 template <class TrieNodeType, typename CharType>
 struct LessThanOtron
 {   
-	bool operator()( const TrieNodeType* lhs, const CharType rhs ) const
-	{
+	bool operator()( const TrieNodeType* lhs, const CharType rhs ) const {
 		return(lhs->GetChar() < rhs);
-	}   
-	bool operator()( const CharType lhs, const TrieNodeType* rhs ) const    
-	{
+	}
+
+	bool operator()( const CharType lhs, const TrieNodeType* rhs ) const {
 		return(lhs < rhs->GetChar());
 	}
 };
@@ -31,23 +30,25 @@ template<typename CharType>
 class TrieNode
 {
 	public:
-		TrieNode (CharType c, const std::string& dictionaryName, int16_t score, bool caseSensitive, bool distinct) :
+		TrieNode (CharType c,
+				  const std::string& dictionaryName,
+				  int16_t score,
+				  bool caseSensitive,
+				  bool distinct,
+				  bool wholeWord) :
 			_c(c), 
 			_endOfWord(false), 
 			_childNodes(NULL),
 			_dictionaryName(dictionaryName),
 			_score(score),
 			_caseSensitive(caseSensitive),
-			_distinct(distinct)
-		{
+			_distinct(distinct),
+			_wholeWord(wholeWord) {
 		}
 
-		~TrieNode()
-		{
-			if (_childNodes)
-			{
-				for( size_t i =  0; i < _childNodes->size(); ++i)
-				{
+		~TrieNode()	{
+			if (_childNodes) {
+				for( size_t i =  0; i < _childNodes->size(); ++i) {
 					delete _childNodes->at(i);
 				}
 				delete _childNodes;
@@ -58,14 +59,11 @@ class TrieNode
 		CharType GetChar() const { return _c; }
 
 		// compress shrinks down all the vectors
-		void Compress()
-		{
-			if (_childNodes && !_childNodes->empty())
-			{
+		void Compress()	{
+			if (_childNodes && !_childNodes->empty()) {
 				_childNodes->shrink_to_fit();
 				typename std::vector<TrieNode*>::const_iterator i = _childNodes->begin();
-				for (; i != _childNodes->end() ; ++i) 
-				{
+				for (; i != _childNodes->end() ; ++i) {
 					// recurse down the tree and call Compress
 					(*i)->Compress();
 				}
@@ -73,42 +71,34 @@ class TrieNode
 		}
 
 		// invariant
-		bool ValidateState() const
-		{
+		bool ValidateState() const {
 			// if we have a childnodes vector it should never be empty
-			if (_childNodes && _childNodes->empty())
-			{
+			if (_childNodes && _childNodes->empty()) {
 				return false;
 			}
 
-			if (_childNodes)
-			{
+			if (_childNodes) {
 				// check child nodes are sorted AND there are NO duplicates
 				typename std::vector<TrieNode*>::const_iterator i = _childNodes->begin();
 
 				CharType lastChar = (*i)->GetChar();
-				if (false==(*i)->ValidateState())
-				{
+				if (false==(*i)->ValidateState()) {
 					return false;
 				}
 				++i;
-				for (; i != _childNodes->end() ; ++i) 
-				{
+				for (; i != _childNodes->end() ; ++i) {
 					// recurse down the tree and call validate
-					if (false==(*i)->ValidateState())
-					{
+					if (false==(*i)->ValidateState()) {
 						return false;
 					}
 
-					if( lastChar > (*i)->GetChar() )
-					{
+					if( lastChar > (*i)->GetChar() ) {
 						return false;
 					}
 					lastChar = (*i)->GetChar();
 				}
 			}
-			else if (!this->IsEndOfWord())
-			{
+			else if (!this->IsEndOfWord()) {
 				return false;
 			}
 
@@ -120,28 +110,25 @@ class TrieNode
 						   const std::string& dictionaryName,
 						   int32_t score,
 						   bool caseSensitive,
-						   bool distinct)
-		{
-			if (NULL==_childNodes)
-			{
+						   bool distinct,
+						   bool wholeWord) {
+			if (NULL==_childNodes) {
 				_childNodes = new std::vector<TrieNode*>;
 			}
 			TrieNode* newNode = NULL;
 
 			typename std::vector<TrieNode*>::iterator i = std::lower_bound(_childNodes->begin(), _childNodes->end(), c, LessThanOtron<TrieNode,CharType>());
 			
-			if (i == _childNodes->end())
-			{
-				newNode = new TrieNode(c, dictionaryName, score, caseSensitive, distinct);
+			if (i == _childNodes->end()) {
+				newNode = new TrieNode(c, dictionaryName, score, caseSensitive, distinct, wholeWord);
 				_childNodes->push_back(newNode);
 				return newNode;
 			}
-			else if ((*i)->GetChar()==c)
-			{
+			else if ((*i)->GetChar()==c) {
 				// duplicate node? Hopefully this wont happen...
 				return NULL;
 			}
-			newNode = new TrieNode(c, dictionaryName, score, caseSensitive, distinct);
+			newNode = new TrieNode(c, dictionaryName, score, caseSensitive, distinct, wholeWord);
 			// now insert just before i
 			_childNodes->insert (i, newNode);
 			return newNode;
@@ -154,13 +141,10 @@ class TrieNode
 		void SetEndOfWord() { _endOfWord = true; }
 		// FindNode searches child nodes for
 		// a particular TrieNode
-		const TrieNode* FindNode( CharType c ) const
-		{
-			if (_childNodes)
-			{
+		const TrieNode* FindNode( CharType c ) const {
+			if (_childNodes) {
 				typename std::vector<TrieNode*>::const_iterator i = std::lower_bound(_childNodes->begin(), _childNodes->end(), c, LessThanOtron<TrieNode,CharType>());
-				if ((i!=_childNodes->end()) && ((*i)->GetChar()==c))
-				{
+				if ((i!=_childNodes->end()) && ((*i)->GetChar()==c)) {
 					return *i;
 				}
 			}
@@ -168,43 +152,33 @@ class TrieNode
 		}
 
 		// Un-const overload of above
-		TrieNode* FindNode( CharType c )
-		{
-			if (_childNodes)
-			{
+		TrieNode* FindNode( CharType c ) {
+			if (_childNodes) {
 				typename std::vector<TrieNode*>::iterator i = std::lower_bound(_childNodes->begin(), _childNodes->end(), c, LessThanOtron<TrieNode,CharType>());
-				if ((i!=_childNodes->end()) && ((*i)->GetChar()==c))
-				{
+				if ((i!=_childNodes->end()) && ((*i)->GetChar()==c)) {
 					return *i;
 				}
 			}
 			return NULL;
 		}
 
-        void dump(std::ostream& os,size_t& depth, std::string* pstr_workspace) const
-        {
+        void dump(std::ostream& os,size_t& depth, std::string* pstr_workspace) const {
             ++depth;
             std::string spaces( depth*2, ' ');
-            if (!_childNodes->empty())
-            {
-                if (1==depth)
-                {
+            if (!_childNodes->empty()) {
+                if (1==depth) {
                     // the very first switch does not need to move on the pointer
-                    os << spaces << "switch(*p){" << std::endl;
+                    os << spaces << "switch(tolower(*p)){" << std::endl;
+                } else {
+                    os << spaces << "switch(tolower(*(++p))){" << std::endl;
                 }
-                else
-                {
-                    os << spaces << "switch(*(++p)){" << std::endl;
-                }
-                for( size_t i =  0; i < _childNodes->size(); ++i)
-                {
+                for( size_t i =  0; i < _childNodes->size(); ++i) {
 					TrieNode* childNode = _childNodes->at(i);
 
-					os << spaces << "case '" << childNode->GetChar() << "':" << std::endl;
+					os << spaces << "case '" << (CharT)tolower(childNode->GetChar()) << "':" << std::endl;
 	
                     pstr_workspace->append(1,(CharType)childNode->GetChar());
-                    if (childNode->IsEndOfWord())
-                    {
+                    if (childNode->IsEndOfWord()) {
                         // this is the end of a word
                         os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
                         os << spaces << "pRet=p;" << std::endl;
@@ -214,18 +188,17 @@ class TrieNode
 											<< childNode->_dictionaryName << "\", " 
 											<< childNode->_score << ", " 
 											<< (childNode->_distinct ? "true" : "false") << ", "
-											<< (childNode->_caseSensitive ? "true" : "false") <<", data); " << std::endl;
+											<< (childNode->_caseSensitive ? "true" : "false") <<", "
+											<< (childNode->_wholeWord ? "true" : "false") << ", "
+											<< "data); " << std::endl;
 
                         // use this line instead to just print term found
                         // os << spaces << "printf(\"%s\\n\",\"" << *pstr_workspace << "\");" << std::endl;
-                      }
-                    if (_childNodes->at(i)->IsEndNode())
-                    {
+                    }
+                    if (_childNodes->at(i)->IsEndNode()) {
                         os << spaces << "// end. No more words." << std::endl;
                         os << spaces << "return p;" << std::endl;
-                    }
-                    else
-                    {
+                    } else {
                         _childNodes->at(i)->dump(os,depth,pstr_workspace);
                     }
                     pstr_workspace->pop_back();
@@ -255,6 +228,7 @@ class TrieNode
 		int16_t _score;
 		bool _caseSensitive;
 		bool _distinct;
+		bool _wholeWord;
 };
 
 template<typename CharType>
@@ -262,17 +236,14 @@ class SearchResult
 {
 	public:
 		SearchResult( const void * result, const CharType * position )
-			: _result(result), _position(position)
-		{
+			: _result(result), _position(position) {
 		}
 		// handle to matching term (same as the value returned by AddWord()
-		const void * GetResult() const
-		{
+		const void * GetResult() const {
 			return _result;
 		}
 		// offset of last character of match
-		const CharType * GetPosition() const
-		{
+		const CharType * GetPosition() const {
 			return _position;
 		}
 
@@ -285,7 +256,7 @@ template<typename CharType>
 class Trie
 {
 	public:
-		Trie(){ _rootNode = new TrieNode<CharType>((CharType)0, "", 0, false, false); _maxWordLength = 0; }
+		Trie(){ _rootNode = new TrieNode<CharType>((CharType)0, "", 0, false, false, false); _maxWordLength = 0; }
 		~Trie(){ delete _rootNode; }
 
 		// Search function. Requires pointers to the start / end of the input buffer to search.
@@ -304,17 +275,14 @@ class Trie
 			const TrieNode<CharType> * pTN	= _rootNode;
 			const CharType* buff = buffStart;
 
-			while (buff <= buffEnd)
-			{
+			while (buff <= buffEnd)	{
 				// look for the character in the child nodes
 				pTN = pTN->FindNode(*buff);
 				// not found
-				if (NULL == pTN)
-				{
+				if (NULL == pTN) {
 					return;
 				}
-				else if (pTN->IsEndOfWord())
-				{
+				else if (pTN->IsEndOfWord()) {
 					// found a word, could match more though.
 					// at this point need to push result onto vector and continue...
 					SearchResult<CharType> st(pTN,buff);
@@ -322,15 +290,12 @@ class Trie
 
 					// If you want to stop at the first match you can
 					// return here
-					if (stopAtFirstMatch)
-					{
+					if (stopAtFirstMatch) {
 						return;
 					}
 
 					buff++;
-				}
-				else
-				{
+				} else {
 					buff++;
 				}
 			}
@@ -343,13 +308,13 @@ class Trie
 							const std::string& dictionaryName, 
 						    int32_t score,
 							bool caseSensitive,
-							bool distinct)
+							bool distinct,
+							bool wholeWord)
 		{
-			if (!s.empty())
-			{
-				return AddWord(s.c_str(), &s[s.size()-1], dictionaryName, score, caseSensitive, distinct);
+			if (!s.empty())	{
+				return AddWord(s.c_str(), &s[s.size()-1], dictionaryName, score, caseSensitive, distinct, wholeWord);
 			}
-			return NULL;
+			return nullptr;
 		}
 
 		const void* AddWord(const CharType* p,
@@ -357,7 +322,8 @@ class Trie
 							const std::string& dictionaryName,
 							int32_t score,
 							bool caseSensitive,
-							bool distinct)
+							bool distinct,
+							bool wholeWord)
 		{
 			TrieNode<CharType> * pTN = _rootNode;
             size_t wordLen = 0;
@@ -367,25 +333,20 @@ class Trie
 
 				pNext = pTN->FindNode(c);
 
-				if (nullptr == pNext)
-				{
+				if (nullptr == pNext) {
 					// not found so add
-					pTN = pTN->AddNode(c, dictionaryName, score, caseSensitive, distinct);
-				}
-				else
-				{
+					pTN = pTN->AddNode(c, dictionaryName, score, caseSensitive, distinct, wholeWord);
+				} else {
 					// found, set current node to this one
 					pTN = pNext;
 				}
-
 				++p;
                 ++wordLen;
 			}
 			// last node so set the word flag
 			pTN->SetEndOfWord();
 
-            if (wordLen > _maxWordLength)
-            {
+            if (wordLen > _maxWordLength) {
                 _maxWordLength = wordLen;
             }
 
@@ -393,24 +354,20 @@ class Trie
 		}
 		// this calls shrink_to_fit on each of the vectors
 		// this call is recursive
-		void Compress()
-		{
+		void Compress()	{
 			_rootNode->Compress();
 		}
 		// invariant. check that trie is in a valid state
-		bool ValidateState() const
-		{
+		bool ValidateState() const {
 			if (_rootNode->IsEndNode())
 			{
 				// empty trie
 				return true;
 			}
-
 			return _rootNode->ValidateState();
 		}
 
-        void dump(std::ostream& os) const
-        {
+        void dump(std::ostream& os) const {
             std::string workSpace;
 			os << "const CharT* search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void* data) " << std::endl;
             os << "{" << std::endl;
