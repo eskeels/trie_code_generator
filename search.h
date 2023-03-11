@@ -1,5 +1,5 @@
 #pragma once
 #include <cctype>
-typedef char CharT;
-typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, bool caseSensitive, bool wholeWord, void * data);
-const CharT * search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void * data = NULL);
+typedef char32_t CharT;
+#include "scan_result.h"
+const CharT * search(const CharT * pStart, const CharT * pEnd, const CharT * pbuff, ScanResult& result);

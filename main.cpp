@@ -51,8 +51,39 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
     return 0;
 }
 
-int ReadFile(const std::string& filename, Trie<char>& t)
-{
+std::string getDictionaryName(const std::string& line) {
+    if (line[0] == '[') {
+        auto pos = line.find("]");
+        if (pos != -1) {
+            return line.substr(1, pos-1);
+        }
+    }
+    return "";
+}
+
+void processLine(const std::string& line,
+                 std::string& term, 
+                 int16_t& score, 
+                 bool& caseSensitive, 
+                 bool& distinct, 
+                 bool& wholeWord) {
+    std::stringstream ss(line);
+    std::vector<std::string> result;
+
+    while (ss.good()) {
+        std::string substr;
+        getline(ss, substr, ',');
+        result.push_back(substr);
+    }
+
+    term = result[0];
+    score = std::stoi(result[1]);
+    caseSensitive = (result[2] == "t" || result[2] == "T");
+    distinct = (result[3] == "t" || result[3] == "T");
+    wholeWord = (result[4] == "t" || result[4] == "T");
+}
+
+int ReadFile(const std::string& filename, Trie<char>& t, std::vector<std::string>& dictionaryNames) {
     std::fstream inputFile(filename.c_str());
     if (inputFile.fail())
     {
@@ -60,23 +91,36 @@ int ReadFile(const std::string& filename, Trie<char>& t)
         return EXIT_FAILURE;
     }
 
-    int16_t score = -1;
+    int16_t score = 0;
     std::string dictionaryName = "dictionary1";
-    bool caseSensitive = true;
+    bool caseSensitive = false;
     bool distinct = false;
-    bool wholeWord = true;
+    bool wholeWord = false;
 
-    for( std::string line; std::getline(inputFile,line); )
-    {
+    for( std::string line; std::getline(inputFile,line); ) {
+        
+        if (line[0] == '[') {
+            dictionaryName = getDictionaryName(line);
+            continue;
+        }
+
+        if (line[0] == '#') {
+            continue;
+        }
+        std::string term;
+        processLine(line, term, score, caseSensitive, distinct, wholeWord);
+
+        std::cout << "Dictionary is " << dictionaryName << std::endl;
+
         std::cout << line << " " << score << std::endl;
-    	AddWord<char>(line, t, dictionaryName, score, caseSensitive, distinct, wholeWord);
+    	AddWord<char>(term, t, dictionaryName, score, caseSensitive, distinct, wholeWord);
         ++score;
     }
 
     return 0;
 }
 
-typedef char CharT;
+typedef wchar_t CharT;
 
 int main(int argc, char* argv[])
 {
@@ -88,8 +132,9 @@ int main(int argc, char* argv[])
     }
 
 	Trie<char> t;
+    std::vector<std::string> dictionaryNames;
 
-    if (0 != ReadFile(fname, t))
+    if (0 != ReadFile(fname, t, dictionaryNames))
     {
         return EXIT_FAILURE;
     }
@@ -107,9 +152,9 @@ int main(int argc, char* argv[])
     std::ofstream hpp("search.h");
     hpp << "#pragma once" << std::endl;
     hpp << "#include <cctype>" << std::endl;
-    hpp << "typedef char CharT;" << std::endl;
-    hpp << "typedef int (MatchFunction)(const CharT * pStart, const CharT * resultString, const CharT * matchStart, const CharT * matchEnd, const char * dictionaryName, int16_t score, bool distinct, bool caseSensitive, bool wholeWord, void * data);" << std::endl;
-    hpp << "const CharT * search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void * data = NULL);" << std::endl;
+    hpp << "typedef char32_t CharT;" << std::endl;
+    hpp << "#include \"scan_result.h\"" << std::endl;
+    hpp << "const CharT * search(const CharT * pStart, const CharT * pEnd, const CharT * pbuff, ScanResult& result);" << std::endl;
     hpp.close();
     
     system("g++ -O3 file_search.cpp -o file_search");

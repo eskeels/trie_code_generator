@@ -1,61 +1,61 @@
-const CharT* search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void* data) 
+const CharT* search(const CharT * pStart, const CharT * pEnd, const CharT * pbuff, ScanResult& result) 
 {
   const CharT * p = pbuff;
   const CharT * pRet = NULL;
   const size_t maxWordLen = 4;
-  while(*p)
+  while(p < pEnd)
   {
   const CharT * matchStart = p;
   switch(tolower(*p)){
-  case 'c':
+  case 0x63:
     switch(tolower(*(++p))){
-    case 'a':
+    case 0x61:
       switch(tolower(*(++p))){
-      case 't':
+      case 0x74:
       // found a word:caT Store pointer to last character of where it was found.
       pRet=p;
-      match(pStart, "caT", matchStart, p, "dictionary1", -1, false, true, true, data); 
+      result.match(pStart, pEnd, U"caT", matchStart, p+1, "animals", 5, true, true, true); 
         switch(tolower(*(++p))){
-        case 's':
+        case 0x73:
         // found a word:caTs Store pointer to last character of where it was found.
         pRet=p;
-        match(pStart, "caTs", matchStart, p, "dictionary1", 0, false, true, true, data); 
+        result.match(pStart, pEnd, U"caTs", matchStart, p+1, "animals", 5, true, true, true); 
         // end. No more words.
         return p;
         break;
         default:
         if (pRet) {
-        // pRet is pointing past the word it found.
-        return pRet;
+          // pRet is pointing past the word it found.
+          return pRet;
         }
-        // not found!
+        // no match found!
         break;
         }
       break;
       default:
       if (pRet) {
-      // pRet is pointing past the word it found.
-      return pRet;
+        // pRet is pointing past the word it found.
+        return pRet;
       }
-      // not found!
+      // no match found!
       break;
       }
     break;
     default:
     if (pRet) {
-    // pRet is pointing past the word it found.
-    return pRet;
+      // pRet is pointing past the word it found.
+      return pRet;
     }
-    // not found!
+    // no match found!
     break;
     }
   break;
   default:
   if (pRet) {
-  // pRet is pointing past the word it found.
-  return pRet;
+    // pRet is pointing past the word it found.
+    return pRet;
   }
-  // not found!
+  // no match found!
   break;
   }
   ++pbuff;

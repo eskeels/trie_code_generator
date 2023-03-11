@@ -5,40 +5,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <codecvt>
+#include <iterator>
+#include <locale>
 
 #include "search.h"
 #include "search.cpp"
-
-// pStart = start of buffer being scanned
-// resultString = matched text from the dictionary
-// matchStart = start of match
-// matchEnd = end of match (last character)
-// dictionaryName = name of dictionary this term belongs to
-// score = score for term
-int myCallback(const CharT* pStart,
-               const CharT* resultString, 
-               const CharT* matchStart,
-               const CharT* matchEnd,
-               const char* dictionaryName,
-               int16_t score,
-               bool distinct,
-               bool caseSensitive,
-               bool wholeWord,
-               void * data)
-{
-    if (caseSensitive) {
-        if (0 != memcmp(matchStart, resultString, 1+(matchEnd - matchStart))) {
-            return 0;
-        }
-    }
-
-    std::cout << "Found word [" << resultString << "] line :" << *(size_t *)data;
-    if (pStart && matchEnd) {
-        std::cout << " column :" << std::distance(pStart, matchStart) << std::endl;
-    }
-
-    return 0;
-}
+#include "scan_result.h"
 
 int ParseCmdLine(int argc, char* argv[], std::string& fname)
 {
@@ -55,6 +28,13 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
     return 0;
 }
 
+std::u32string to_utf32(const std::string& s)
+{
+    std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
+    auto asInt = convert.from_bytes(s);
+    return std::u32string(reinterpret_cast<char32_t const*>(asInt.data()), asInt.length());
+}
+
 int ReadFile(const std::string& filename)
 {
     std::fstream inputFile(filename.c_str());
@@ -64,18 +44,27 @@ int ReadFile(const std::string& filename)
         return EXIT_FAILURE;
     }
 
+    ScanResult sr;
+
     size_t lineCount = 0;
+
+    std::u32string buffer;
     std::string line;
-    for( ; std::getline(inputFile,line); lineCount++)
-    {
-        const char * p = line.c_str();
-        while( p && (*p != '\0') )
-        {
-            const char* newp = search(line.c_str(), p, &myCallback, &lineCount);
-            // for single character matches. I should sort out the search method really...
-            p = (newp == p ? newp + 1 : newp);
-        }
+    for (; std::getline(inputFile, line); lineCount++) {
+        buffer += to_utf32(line);
     }
+
+    const CharT* p = buffer.c_str();
+    const CharT* bufferStart = p;
+    const CharT* bufferEnd = &buffer[buffer.size()];
+    while( p && (*p != '\0') ) {
+        const CharT* newp = search(&buffer[0], &buffer[buffer.size()], p, sr);
+
+        // for single character matches. I should sort out the search method really...
+        p = (newp == p ? newp + 1 : newp);
+    }
+
+    sr.dump(bufferStart, bufferEnd);
 
     return 0;
 }

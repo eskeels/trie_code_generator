@@ -175,22 +175,23 @@ class TrieNode
                 for( size_t i =  0; i < _childNodes->size(); ++i) {
 					TrieNode* childNode = _childNodes->at(i);
 
-					os << spaces << "case '" << (CharT)tolower(childNode->GetChar()) << "':" << std::endl;
-	
+					os << spaces << "case 0x" << std::hex << (CharT)tolower(childNode->GetChar()) << ":" 
+						<< std::endl;
+					os << std::dec;
+
                     pstr_workspace->append(1,(CharType)childNode->GetChar());
                     if (childNode->IsEndOfWord()) {
                         // this is the end of a word
                         os << spaces << "// found a word:" << *pstr_workspace << " Store pointer to last character of where it was found." << std::endl;
                         os << spaces << "pRet=p;" << std::endl;
                         // this puts the call back in
-                        os << spaces << "match(pStart, \"" 
-											<< *pstr_workspace << "\", matchStart, p, \"" 
+                        os << spaces << "result.match(pStart, pEnd, U\""
+											<< *pstr_workspace << "\", matchStart, p+1, \"" 
 											<< childNode->_dictionaryName << "\", " 
 											<< childNode->_score << ", " 
 											<< (childNode->_distinct ? "true" : "false") << ", "
 											<< (childNode->_caseSensitive ? "true" : "false") <<", "
-											<< (childNode->_wholeWord ? "true" : "false") << ", "
-											<< "data); " << std::endl;
+											<< (childNode->_wholeWord ? "true" : "false") << "); " << std::endl;
 
                         // use this line instead to just print term found
                         // os << spaces << "printf(\"%s\\n\",\"" << *pstr_workspace << "\");" << std::endl;
@@ -206,10 +207,10 @@ class TrieNode
                 }
                 os << spaces << "default:" << std::endl;
                 os << spaces << "if (pRet) {" << std::endl;
-                os << spaces << "// pRet is pointing past the word it found." << std::endl;
-                os << spaces << "return pRet;" << std::endl;
+                os << spaces << "  // pRet is pointing past the word it found." << std::endl;
+                os << spaces << "  return pRet;" << std::endl;
                 os << spaces << "}" << std::endl;
-                os << spaces << "// not found!" << std::endl;
+                os << spaces << "// no match found!" << std::endl;
                 os << spaces << "break;" << std::endl;
                 os << spaces << "}" << std::endl;
             }
@@ -369,12 +370,12 @@ class Trie
 
         void dump(std::ostream& os) const {
             std::string workSpace;
-			os << "const CharT* search(const CharT * pStart, const CharT * pbuff, MatchFunction match, void* data) " << std::endl;
+			os << "const CharT* search(const CharT * pStart, const CharT * pEnd, const CharT * pbuff, ScanResult& result) " << std::endl;
             os << "{" << std::endl;
             os << "  const CharT * p = pbuff;" << std::endl;
             os << "  const CharT * pRet = NULL;" << std::endl;
             os << "  const size_t maxWordLen = " << _maxWordLength << ";" << std::endl;
-            os << "  while(*p)" << std::endl;
+            os << "  while(p < pEnd)" << std::endl;
             os << "  {" << std::endl;
 			os << "  const CharT * matchStart = p;" << std::endl;
             size_t depth = 0;
