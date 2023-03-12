@@ -48,12 +48,18 @@ int ReadFile(const std::string& filename)
 
     size_t lineCount = 0;
 
+    std::cout << "Converting to wide.." << std::endl;
+    std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
+
     std::u32string buffer;
+    buffer.reserve(1024 * 1024 * 2);
     std::string line;
     for (; std::getline(inputFile, line); lineCount++) {
-        buffer += to_utf32(line);
+        buffer.append((const CharT*)convert.from_bytes(line).c_str());
+        buffer += U'\n';
     }
 
+    std::cout << "Starting scan.." << std::endl;
     const CharT* p = buffer.c_str();
     const CharT* bufferStart = p;
     const CharT* bufferEnd = &buffer[buffer.size()];

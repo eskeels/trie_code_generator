@@ -5,8 +5,13 @@
 #include <unordered_set>
 
 inline CharT fastTolower(CharT c) {
-    return c;
+    return tolower(c);
 }
+
+inline bool fastIsSpace(CharT c) {
+    return (isspace(c)!=0);
+}
+
 class DictionaryMatches {
 public:
     DictionaryMatches(const std::string& name, int16_t score, const CharT* start, const CharT* end) {
@@ -81,14 +86,14 @@ public:
         if (wholeWord) {
             // check if start of buffer
             if (matchStart > pStart) {
-                if (!isspace(*(matchStart - 1))) {
+                if (!fastIsSpace(*(matchStart - 1))) {
                     // preceding char not a space
                     return false;
                 }
             }
             // check if end of buffer
             if (matchEnd < pEnd - 1) {
-                if (!isspace(*matchEnd)) {
+                if (!fastIsSpace(*matchEnd)) {
                     // successive char not a space
                     return false;
                 }
@@ -122,10 +127,11 @@ public:
             }
             auto it = _distinctMatches.find(distinctMatch);
             if (it != _distinctMatches.end()) {
-                return 0;
+                return false;
             }
             _distinctMatches.insert(distinctMatch);
         }
+        return true;
     }
 
     bool maxMatchCountCheck() {
@@ -163,7 +169,7 @@ public:
         if (!maxMatchCountCheck()) {
             return 0;
         }
-        
+
         addMatch(dictionaryName, score, matchStart, matchEnd);
                
         return 0;

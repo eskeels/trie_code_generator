@@ -330,7 +330,7 @@ class Trie
             size_t wordLen = 0;
 			while (pTN && p <= end)	{
 				TrieNode<CharType>* pNext = nullptr;
-				CharType c = *p;
+				CharType c = tolower(*p);
 
 				pNext = pTN->FindNode(c);
 
