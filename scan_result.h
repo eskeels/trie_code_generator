@@ -5,10 +5,12 @@
 #include <unordered_set>
 
 inline CharT fastTolower(CharT c) {
+    // TODO: optimize for ASCII range
     return tolower(c);
 }
 
 inline bool fastIsSpace(CharT c) {
+    // TODO: optimize for ASCII range
     return (isspace(c)!=0);
 }
 
