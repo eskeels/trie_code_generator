@@ -61,7 +61,7 @@ std::string getDictionaryName(const std::string& line) {
     return "";
 }
 
-void processLine(const std::string& line,
+bool processLine(const std::string& line,
                  std::string& term, 
                  int16_t& score, 
                  bool& caseSensitive, 
@@ -76,11 +76,19 @@ void processLine(const std::string& line,
         result.push_back(substr);
     }
 
-    term = result[0];
-    score = std::stoi(result[1]);
-    caseSensitive = (result[2] == "t" || result[2] == "T");
-    distinct = (result[3] == "t" || result[3] == "T");
-    wholeWord = (result[4] == "t" || result[4] == "T");
+    if (result.size() == 5) {
+
+        term = result[0];
+        score = std::stoi(result[1]);
+        caseSensitive = (result[2] == "t" || result[2] == "T");
+        distinct = (result[3] == "t" || result[3] == "T");
+        wholeWord = (result[4] == "t" || result[4] == "T");
+    }
+    else {
+        std::cout << "Rejecting " << line << std::endl;
+        return false;
+    }
+    return true;
 }
 
 int ReadFile(const std::string& filename, Trie<char>& t, std::vector<std::string>& dictionaryNames) {
@@ -97,10 +105,16 @@ int ReadFile(const std::string& filename, Trie<char>& t, std::vector<std::string
     bool distinct = false;
     bool wholeWord = false;
 
+    int termCount = 0;
+    int dictionaryCount = 0;
+    int rejectedCount = 0;
+
     for( std::string line; std::getline(inputFile,line); ) {
         
         if (line[0] == '[') {
             dictionaryName = getDictionaryName(line);
+            std::cout << "Processing dictionary " << dictionaryName << std::endl;
+            ++dictionaryCount;
             continue;
         }
 
@@ -108,14 +122,19 @@ int ReadFile(const std::string& filename, Trie<char>& t, std::vector<std::string
             continue;
         }
         std::string term;
-        processLine(line, term, score, caseSensitive, distinct, wholeWord);
-
-        std::cout << "Dictionary is " << dictionaryName << std::endl;
-
-        std::cout << line << " " << score << std::endl;
-    	AddWord<char>(term, t, dictionaryName, score, caseSensitive, distinct, wholeWord);
-        ++score;
+        if (processLine(line, term, score, caseSensitive, distinct, wholeWord)) {
+            AddWord<char>(term, t, dictionaryName, score, caseSensitive, distinct, wholeWord);
+            ++termCount;
+        } else {
+            ++rejectedCount;
+        }
     }
+
+    std::cout << std::endl
+        << "Processed "
+        << dictionaryCount << " dictionaries, "
+        << termCount << " terms."
+        << " Rejected " << rejectedCount << " terms." << std::endl;
 
     return 0;
 }

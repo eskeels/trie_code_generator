@@ -6,20 +6,20 @@ const CharT* search(const CharT * pStart, const CharT * pEnd, const CharT * pbuf
   while(p < pEnd)
   {
   const CharT * matchStart = p;
-  switch(tolower(*p)){
+  switch(fastTolower(*p)){
   case 0x63:
-    switch(tolower(*(++p))){
+    switch(fastTolower(*(++p))){
     case 0x61:
-      switch(tolower(*(++p))){
+      switch(fastTolower(*(++p))){
       case 0x74:
       // found a word:caT Store pointer to last character of where it was found.
       pRet=p;
-      result.match(pStart, pEnd, U"caT", matchStart, p+1, "animals", 5, true, true, true); 
-        switch(tolower(*(++p))){
+      result.match(pStart, pEnd, U"caT", matchStart, p+1, "animals", 5, false, true, true); 
+        switch(fastTolower(*(++p))){
         case 0x73:
         // found a word:caTs Store pointer to last character of where it was found.
         pRet=p;
-        result.match(pStart, pEnd, U"caTs", matchStart, p+1, "animals", 5, true, true, true); 
+        result.match(pStart, pEnd, U"caTs", matchStart, p+1, "animals", 5, false, true, true); 
         // end. No more words.
         return p;
         break;

@@ -168,9 +168,9 @@ class TrieNode
             if (!_childNodes->empty()) {
                 if (1==depth) {
                     // the very first switch does not need to move on the pointer
-                    os << spaces << "switch(tolower(*p)){" << std::endl;
+                    os << spaces << "switch(fastTolower(*p)){" << std::endl;
                 } else {
-                    os << spaces << "switch(tolower(*(++p))){" << std::endl;
+                    os << spaces << "switch(fastTolower(*(++p))){" << std::endl;
                 }
                 for( size_t i =  0; i < _childNodes->size(); ++i) {
 					TrieNode* childNode = _childNodes->at(i);

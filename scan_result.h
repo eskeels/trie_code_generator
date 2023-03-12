@@ -2,7 +2,11 @@
 #include <cstdint>
 #include <list>
 #include <map>
+#include <unordered_set>
 
+inline CharT fastTolower(CharT c) {
+    return c;
+}
 class DictionaryMatches {
 public:
     DictionaryMatches(const std::string& name, int16_t score, const CharT* start, const CharT* end) {
@@ -15,14 +19,14 @@ public:
         _score += score;
     }
 
-    void dump(const CharT* bufferStart, const CharT* bufferEnd) {
+    void dump(const CharT* bufferStart, const CharT* bufferEnd, int snipSize) {
         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cvt;
         std::cout << _name << " Score: " << _score << std::endl;
         for (auto it : _matches) {
             auto matchStart = it.first;
             auto matchEnd = it.second;
-            matchStart -= 3;
-            matchEnd += 3;
+            matchStart -= snipSize;
+            matchEnd += snipSize;
 
             if (matchStart < bufferStart) {
                 matchStart = bufferStart;
@@ -57,71 +61,111 @@ public:
 		_matchSuffix = v;
 	}
 
-	int match(const CharT* pStart, 
-			  const CharT* pEnd, 
-			  const CharT* resultString, 
-			  const CharT* matchStart, 
-			  const CharT* matchEnd, 
-			  const char* dictionaryName, 
-			  int16_t score, 
-			  bool distinct, 
-			  bool caseSensitive, 
-			  bool wholeWord) {
-       // std::wstring tmp((const wchar_t*)matchStart, (const wchar_t*)matchEnd);
-       // std::wcout << L"Found word [" << tmp << L"] ";
-
+    bool caseCheck(bool caseSensitive, 
+                   const CharT* resultString,
+                   const CharT* matchStart,
+                   const CharT* matchEnd) {
         if (caseSensitive) {
             if (0 != memcmp(matchStart, resultString, matchEnd - matchStart)) {
-                return 0;
+                return false;
             }
         }
+        return true;
+    }
 
+    bool wholeWordCheck(bool wholeWord,
+                        const CharT* pStart,
+                        const CharT* pEnd,
+                        const CharT* matchStart,
+                        const CharT* matchEnd) {
         if (wholeWord) {
             // check if start of buffer
             if (matchStart > pStart) {
                 if (!isspace(*(matchStart - 1))) {
                     // preceding char not a space
-                    return 0;
+                    return false;
                 }
             }
             // check if end of buffer
             if (matchEnd < pEnd - 1) {
                 if (!isspace(*matchEnd)) {
                     // successive char not a space
-                    return 0;
+                    return false;
                 }
             }
         }
-        
+        return true;
+    }
 
-        if (pStart && matchEnd) {
-            std::wcout << " column :" << std::distance(pStart, matchStart) << std::endl;
-            std::wcout << "Length " << std::distance(matchStart, matchEnd) << std::endl;
-        }
-
+    bool distinctCheck(bool distinct,
+                       bool caseSensitive,
+                       const CharT* matchStart,
+                       const CharT* matchEnd,
+                       const char* dictionaryName) {
         if (distinct) {
-            std::u32string match;
+            // NB this distinct key could be generated
+            // by the Trie
+            std::u32string distinctMatch(1, U'.');
             auto pd = dictionaryName;
-            while (*pd) {
-                match.append(1, (char32_t)*pd);
-            }
-            
+            while (*pd)
+                distinctMatch.append(1, (char32_t)*pd++);
+
+            distinctMatch.append(1, U'.');
+
             auto pm = matchStart;
-            if (!caseSensitive) {
+            if (caseSensitive) {
                 while (pm < matchEnd)
-                    match.append(1, tolower(*pm));
+                    distinctMatch.append(1, *pm++);
             } else {
                 while (pm < matchEnd)
-                    match.append(1, *pm);
+                    distinctMatch.append(1, tolower(*pm++));
             }
-          
+            auto it = _distinctMatches.find(distinctMatch);
+            if (it != _distinctMatches.end()) {
+                return 0;
+            }
+            _distinctMatches.insert(distinctMatch);
+        }
+    }
+
+    bool maxMatchCountCheck() {
+        if (_matchCount >= _maxMatches) {
+            return false;
         }
         
-        if (_matchCount < _maxMatches) {
-            ++_matchCount;
-            addMatch(dictionaryName, score, matchStart, matchEnd);
+        ++_matchCount;
+        return true;
+    }
+
+	int match(const CharT* pStart,
+			  const CharT* pEnd,
+			  const CharT* resultString,
+			  const CharT* matchStart,
+			  const CharT* matchEnd,
+			  const char* dictionaryName,
+			  int16_t score,
+			  bool distinct,
+			  bool caseSensitive,
+			  bool wholeWord) {
+
+        if (!caseCheck(caseSensitive, resultString, matchStart, matchEnd)) {
+            return 0;
+        }
+
+        if (!wholeWordCheck(wholeWord, pStart, pEnd, matchStart, matchEnd)) {
+            return 0;
+        }
+
+        if (!distinctCheck(distinct, caseSensitive, matchStart, matchEnd,  dictionaryName)) {
+            return 0;
+        }
+
+        if (!maxMatchCountCheck()) {
+            return 0;
         }
         
+        addMatch(dictionaryName, score, matchStart, matchEnd);
+               
         return 0;
 	}
 
@@ -134,9 +178,9 @@ public:
         }
     }
 
-    void dump(const CharT* bufferStart, const CharT* bufferEnd) {
+    void dump(const CharT* bufferStart, const CharT* bufferEnd, int snipSize) {
         for (auto it : _dictionaryMatches) {
-            it.second.dump(bufferStart, bufferEnd);
+            it.second.dump(bufferStart, bufferEnd, snipSize);
         }
     }
 protected:
@@ -144,4 +188,5 @@ protected:
 	uint8_t _matchSuffix = 10;
     uint32_t _matchCount = 0;
     std::map < std::string, DictionaryMatches > _dictionaryMatches;
+    std::unordered_set< std::u32string> _distinctMatches;
 };

@@ -64,7 +64,7 @@ int ReadFile(const std::string& filename)
         p = (newp == p ? newp + 1 : newp);
     }
 
-    sr.dump(bufferStart, bufferEnd);
+    sr.dump(bufferStart, bufferEnd, 5);
 
     return 0;
 }
