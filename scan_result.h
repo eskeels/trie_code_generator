@@ -21,8 +21,18 @@ public:
         addMatch(score, start, end);
     }
 
+    DictionaryMatches(const std::string& name, int16_t score) {
+        _name = name;
+        addMatch(score);
+    }
+
     void addMatch(int16_t score, const CharT* start, const CharT* end) {
         _matches.push_back(std::make_pair(start, end));
+        _score += score;
+    }
+
+    // adds a match just for score (when maxMatches limit has been reached)
+    void addMatch(int16_t score) {
         _score += score;
     }
 
@@ -137,12 +147,13 @@ public:
     }
 
     bool maxMatchCountCheck() {
-        if (_matchCount >= _maxMatches) {
-            return false;
-        }
-        
         ++_matchCount;
-        return true;
+
+        if (_matchCount <= _maxMatches) {
+            return true;
+        }
+ 
+        return false;
     }
 
 	int match(const CharT* pStart,
@@ -168,11 +179,11 @@ public:
             return 0;
         }
 
-        if (!maxMatchCountCheck()) {
-            return 0;
+        if (maxMatchCountCheck()) {
+            addMatch(dictionaryName, score, matchStart, matchEnd);
+        } else {
+            addMatch(dictionaryName, score);
         }
-
-        addMatch(dictionaryName, score, matchStart, matchEnd);
                
         return 0;
 	}
@@ -183,6 +194,16 @@ public:
             it->second.addMatch(score, matchStart, matchEnd);
         } else {
             _dictionaryMatches.insert(std::make_pair(dictionaryName, DictionaryMatches(dictionaryName, score, matchStart, matchEnd)));
+        }
+    }
+
+    void addMatch(const std::string& dictionaryName, int16_t score) {
+        auto it = _dictionaryMatches.find(dictionaryName);
+        if (it != _dictionaryMatches.end()) {
+            it->second.addMatch(score);
+        }
+        else {
+            _dictionaryMatches.insert(std::make_pair(dictionaryName, DictionaryMatches(dictionaryName, score)));
         }
     }
 

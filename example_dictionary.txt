@@ -1,2 +1,5 @@
-caT
-caTs
+# word, score, case, distinct, whole word
+[animals]
+cat,5,t,f,t
+caTS,5,t,f,t
+but,1,f,f,t

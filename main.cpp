@@ -175,8 +175,11 @@ int main(int argc, char* argv[])
     hpp << "#include \"scan_result.h\"" << std::endl;
     hpp << "const CharT * search(const CharT * pStart, const CharT * pEnd, const CharT * pbuff, ScanResult& result);" << std::endl;
     hpp.close();
-    
+#ifdef _WINDOWS
+    system("cl /EHsc file_search.cpp");
+#else
     system("g++ -O3 file_search.cpp -o file_search");
+#endif // _WINDOWS
     
 	return 0;
 }
