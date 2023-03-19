@@ -2,6 +2,11 @@
 // public domain. The author hereby disclaims copyright to this source
 // code.
 
+#ifdef _WINDOWS
+#include <windows.h>
+#pragma execution_character_set( "utf-8" )
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -28,13 +33,6 @@ int ParseCmdLine(int argc, char* argv[], std::string& fname)
     return 0;
 }
 
-std::u32string to_utf32(const std::string& s)
-{
-    std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> convert;
-    auto asInt = convert.from_bytes(s);
-    return std::u32string(reinterpret_cast<char32_t const*>(asInt.data()), asInt.length());
-}
-
 int ReadFile(const std::string& filename)
 {
     std::fstream inputFile(filename.c_str());
@@ -59,6 +57,8 @@ int ReadFile(const std::string& filename)
         buffer += U'\n';
     }
 
+    sr.setMaxMatches(1000);
+
     std::cout << "Starting scan.." << std::endl;
     const CharT* p = buffer.c_str();
     const CharT* bufferStart = p;
@@ -70,8 +70,14 @@ int ReadFile(const std::string& filename)
         p = (newp == p ? newp + 1 : newp);
     }
 
+#ifdef _WINDOWS
+    // set console to utf-8
+    SetConsoleOutputCP(CP_UTF8);
+    // if this doesnt work call chcp 65001 from command prompt
+#endif
+    
     sr.dump(bufferStart, bufferEnd, 5);
-
+  
     return 0;
 }
 

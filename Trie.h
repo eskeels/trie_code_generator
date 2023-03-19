@@ -175,7 +175,7 @@ class TrieNode
                 for( size_t i =  0; i < _childNodes->size(); ++i) {
 					TrieNode* childNode = _childNodes->at(i);
 
-					os << spaces << "case 0x" << std::hex << (CharT)tolower(childNode->GetChar()) << ":" 
+					os << spaces << "case 0x" << std::hex << (CharType)tolower(childNode->GetChar()) << ":" 
 						<< std::endl;
 					os << std::dec;
 
